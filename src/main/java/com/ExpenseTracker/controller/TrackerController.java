@@ -19,9 +19,6 @@ import com.ExpenseTracker.dto.CategoryExpenseSummary;
 import com.ExpenseTracker.dto.ExpenseUserResponse;
 import com.ExpenseTracker.dto.TrackerRequest;
 import com.ExpenseTracker.dto.TrackerResponse;
-import com.ExpenseTracker.dto.UserDetailsResponse;
-import com.ExpenseTracker.dto.UserRequest;
-import com.ExpenseTracker.dto.UserResponse;
 import com.ExpenseTracker.service.TrackerService;
 
 import jakarta.validation.Valid;
@@ -43,36 +40,6 @@ public class TrackerController {
 		ApiResponse<TrackerResponse> apiResponse = new ApiResponse<TrackerResponse>(true, "Expense added successfully", response);
 		
 		return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
-	}
-	
-	@PostMapping("/users")
-	public ResponseEntity<ApiResponse<UserResponse>> addUser(@Valid @RequestBody UserRequest request){
-	
-		UserResponse response = service.addUser(request);
-		
-		ApiResponse<UserResponse> apiResponse = new ApiResponse<UserResponse>(true, "User added successfully", response);
-		
-		return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
-	}
-	
-	@GetMapping("/users/{id}")
-	public ResponseEntity<ApiResponse<UserResponse>> getUser(@PathVariable int id) {
-
-		UserResponse user = service.getUserById(id);
-		
-	    ApiResponse<UserResponse> apiResponse = new ApiResponse<UserResponse>(true, "User fetched successfully", user);
-	    
-	    return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
-	}
-	
-	@GetMapping("/users/expenses/{id}")
-	public ResponseEntity<ApiResponse<UserDetailsResponse>> getExpensesByUser(@PathVariable int id) {
-
-		UserDetailsResponse user = service.getExpensesByUser(id);
-		
-	    ApiResponse<UserDetailsResponse> apiResponse = new ApiResponse<UserDetailsResponse>(true, "User fetched successfully", user);
-	    
-	    return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
 	}
 	
 	@GetMapping("/expenses/paginated")

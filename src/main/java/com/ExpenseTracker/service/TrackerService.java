@@ -16,9 +16,6 @@ import com.ExpenseTracker.dto.CategoryExpenseSummary;
 import com.ExpenseTracker.dto.ExpenseUserResponse;
 import com.ExpenseTracker.dto.TrackerRequest;
 import com.ExpenseTracker.dto.TrackerResponse;
-import com.ExpenseTracker.dto.UserDetailsResponse;
-import com.ExpenseTracker.dto.UserRequest;
-import com.ExpenseTracker.dto.UserResponse;
 import com.ExpenseTracker.entity.TrackerEntity;
 import com.ExpenseTracker.entity.UserEntity;
 import com.ExpenseTracker.exceptions.ExpenseNotFoundException;
@@ -72,19 +69,6 @@ public class TrackerService {
 		
 		return new TrackerResponse(expense.getId(), expense.getTitle(), expense.getAmount(), expense.getCategory(), expense.getDescription(), expense.getUser().getName());
 	}
-
-	public UserResponse addUser(UserRequest request) {
-		
-		UserEntity user = new UserEntity(request.getName(), request.getEmail());
-		
-		logger.info("Adding new user: {}", request.getName());
-		
-		userRepository.save(user);
-		
-		logger.info("User added successfully");
-		
-		return new UserResponse(user.getId(), user.getName(), user.getEmail());
-	}
 	
 	public List<TrackerResponse> getAllExpenses(int page, int size) {
 		
@@ -98,26 +82,6 @@ public class TrackerService {
 		return pageResult.getContent().stream().map(expense -> mapToResponse(expense)).toList();
 
 		//return repository.findAll(pageable).stream().map(expense -> new TrackerResponse(expense.getId(), expense.getTitle(), expense.getAmount(), expense.getCategory(), expense.getDescription())).toList();
-	}
-
-	public UserResponse getUserById(int id) {
-
-		UserEntity user = userRepository.findById(id).orElseThrow(() -> {
-			logger.error("User not found with id: {}",id);
-		return new UserNotFoundException("User not found");
-		});
-		
-		return new UserResponse(user.getId(), user.getName(), user.getEmail());
-	}
-	
-	public UserDetailsResponse getExpensesByUser(int id) {
-
-		UserEntity user = userRepository.findById(id).orElseThrow(() -> {
-			logger.error("User not found with id: {}",id);
-		return new UserNotFoundException("User not found");
-		});
-		
-		return new UserDetailsResponse(id, user.getName(), user.getEmail(), user.getExpenses());
 	}
 	
 	public TrackerResponse getExpenseById(int id) {
