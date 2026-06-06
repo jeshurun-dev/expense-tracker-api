@@ -11,10 +11,41 @@ public class UserRequest {
 	@Email(message = "please use proper email format")
 	@NotBlank(message = "email is required")
 	private String email;
+	
+	private String password;
+	
+	private String role;
 
 	public UserRequest(String name, String email) {
 		this.name = name;
 		this.email = email;
+	}
+	
+	public UserRequest(String name, String email, String password, String role) {
+		this.name = name;
+		this.email = email;
+		this.password = password;
+		this.role = role;
+	}
+
+	public UserRequest() {
+	
+	}
+	
+	public String getPassword() {
+		return password;
+	}
+
+	public String getRole() {
+		return role;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public void setRole(String role) {
+		this.role = role;
 	}
 
 	public String getName() {

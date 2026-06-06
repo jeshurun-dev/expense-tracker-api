@@ -21,6 +21,10 @@ public class UserEntity {
 	
 	private String email;
 	
+	private String password;
+	
+	private String role;
+	
 	@OneToMany(mappedBy = "user")
 	@JsonManagedReference
 	private List<TrackerEntity> expenses;
@@ -28,6 +32,13 @@ public class UserEntity {
 	public UserEntity(String name, String email) {
 		this.name = name;
 		this.email = email;
+	}
+	
+	public UserEntity(String name, String email, String password, String role) {
+		this.name = name;
+		this.email = email;
+		this.password = password;
+		this.role = role;
 	}
 	
 	public UserEntity() {
@@ -52,6 +63,22 @@ public class UserEntity {
 
 	public String getEmail() {
 		return email;
+	}
+	
+	public String getPassword() {
+		return password;
+	}
+
+	public String getRole() {
+		return role;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public void setRole(String role) {
+		this.role = role;
 	}
 
 	public void setId(int id) {

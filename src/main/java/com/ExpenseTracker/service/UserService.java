@@ -3,6 +3,7 @@ package com.ExpenseTracker.service;
 import java.util.List;
 
 import org.slf4j.Logger;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.ExpenseTracker.dto.UserDetailsResponse;
@@ -17,8 +18,11 @@ public class UserService {
 	
 	private final UserRepository repository;
 	
-	public UserService(UserRepository repository) {
+	private final PasswordEncoder passwordEncoder;
+	
+	public UserService(UserRepository repository, PasswordEncoder passwordEncoder) {
 		this.repository = repository;
+		this.passwordEncoder = passwordEncoder;
 	}
 	
 	private static final Logger logger = org.slf4j.LoggerFactory.getLogger(UserService.class);
@@ -30,7 +34,9 @@ public class UserService {
 	
 	public UserResponse addUser(UserRequest request) {
 		
-		UserEntity user = new UserEntity(request.getName(), request.getEmail());
+		UserEntity user = new UserEntity(request.getName(), request.getEmail(), request.getPassword(), request.getRole());
+		
+		user.setPassword(passwordEncoder.encode(request.getPassword()));
 		
 		logger.info("Adding new user: {}", request.getName());
 		
