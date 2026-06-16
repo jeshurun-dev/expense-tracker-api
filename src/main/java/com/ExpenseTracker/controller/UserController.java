@@ -69,10 +69,10 @@ public class UserController {
 		return ResponseEntity.ok(apiResponse);
 	}
 	
-	@GetMapping("/users/expenses/{id}")
-	public ResponseEntity<ApiResponse<UserDetailsResponse>> getExpensesByUser(@PathVariable int id) {
+	@GetMapping("/users/my-expenses")
+	public ResponseEntity<ApiResponse<UserDetailsResponse>> getExpensesByUser() {
 
-		UserDetailsResponse user = service.getExpensesByUser(id);
+		UserDetailsResponse user = service.getExpensesByUser();
 		
 	    ApiResponse<UserDetailsResponse> apiResponse = new ApiResponse<UserDetailsResponse>(true, "User fetched successfully", user);
 	    

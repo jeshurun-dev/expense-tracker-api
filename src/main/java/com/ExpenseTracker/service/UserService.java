@@ -3,6 +3,7 @@ package com.ExpenseTracker.service;
 import java.util.List;
 
 import org.slf4j.Logger;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -10,6 +11,7 @@ import com.ExpenseTracker.dto.UserDetailsResponse;
 import com.ExpenseTracker.dto.UserRequest;
 import com.ExpenseTracker.dto.UserResponse;
 import com.ExpenseTracker.entity.UserEntity;
+import com.ExpenseTracker.exceptions.AccessDeniedException;
 import com.ExpenseTracker.exceptions.UserNotFoundException;
 import com.ExpenseTracker.repository.UserRepository;
 
@@ -29,12 +31,15 @@ public class UserService {
 	
 	public static UserResponse mapToResponse(UserEntity user) {
 		
-		return new UserResponse(user.getId(), user.getName(), user.getEmail());
+		return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getRole());
 	}
 	
 	public UserResponse addUser(UserRequest request) {
 		
-		UserEntity user = new UserEntity(request.getName(), request.getEmail(), request.getPassword(), request.getRole());
+		UserEntity user = new UserEntity(request.getName(), request.getEmail(), request.getPassword());
+		
+		//only users can create new users/accounts. There will be default admins added directly to DB
+		user.setRole("USER");
 		
 		user.setPassword(passwordEncoder.encode(request.getPassword()));
 		
@@ -62,14 +67,16 @@ public class UserService {
 		return mapToResponse(user);		
 	}
 	
-	public UserDetailsResponse getExpensesByUser(int id) {
+	public UserDetailsResponse getExpensesByUser() {
 		
-		UserEntity user = repository.findById(id).orElseThrow(() -> {
-			logger.error("User not found with id: {}",id);
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		
+		UserEntity user = repository.findByEmail(email).orElseThrow(() -> {
+			logger.error("User not found with email: {}",email);
 			return new UserNotFoundException("User not found");
 			});
 		
-		return new UserDetailsResponse(id, user.getName(), user.getEmail(), user.getExpenses());
+		return new UserDetailsResponse(user.getId(), user.getName(), user.getEmail(), user.getExpenses());
 		
 	}
 

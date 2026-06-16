@@ -41,6 +41,16 @@ public class SecurityConfig {
 		    		.requestMatchers(
 		    				HttpMethod.POST,"/auth/login")
 		    		.permitAll()
+		    		.requestMatchers(HttpMethod.GET,"/users/my-expenses")
+		    		.hasAnyRole("USER","ADMIN")
+		    		.requestMatchers(HttpMethod.GET,"/users/all-users")
+		    		.hasRole("ADMIN")
+		    		.requestMatchers(HttpMethod.GET,"/users/*")
+		    		.hasRole("ADMIN")
+		    		.requestMatchers(HttpMethod.PUT,"/users/*")
+		    		.hasRole("ADMIN")
+		    		.requestMatchers(HttpMethod.DELETE,"/users/*")
+		    		.hasRole("ADMIN")
 		    		
 		    		.anyRequest()
 		    		.authenticated()

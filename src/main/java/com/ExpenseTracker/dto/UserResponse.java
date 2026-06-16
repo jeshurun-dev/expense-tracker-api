@@ -8,10 +8,13 @@ public class UserResponse {
 	
 	private String email;
 	
-	public UserResponse(int userId, String name, String email) {
+	private String role;
+	
+	public UserResponse(int userId, String name, String email, String role) {
 		this.userId = userId;
 		this.name = name;
 		this.email = email;
+		this.role = role;
 	}
 
 	public int getUserId() {
@@ -24,6 +27,10 @@ public class UserResponse {
 
 	public String getEmail() {
 		return email;
+	}
+	
+	public String getRole() {
+		return role;
 	}
 	
 }

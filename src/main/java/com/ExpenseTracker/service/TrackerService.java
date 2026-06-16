@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.ExpenseTracker.dto.CategoryExpenseSummary;
@@ -18,11 +19,11 @@ import com.ExpenseTracker.dto.TrackerRequest;
 import com.ExpenseTracker.dto.TrackerResponse;
 import com.ExpenseTracker.entity.TrackerEntity;
 import com.ExpenseTracker.entity.UserEntity;
+import com.ExpenseTracker.exceptions.AccessDeniedException;
 import com.ExpenseTracker.exceptions.ExpenseNotFoundException;
 import com.ExpenseTracker.exceptions.UserNotFoundException;
 import com.ExpenseTracker.repository.TrackerRepository;
 import com.ExpenseTracker.repository.UserRepository;
-
 
 @Service
 public class TrackerService {
@@ -50,12 +51,35 @@ public class TrackerService {
 		return new TrackerResponse(expense.getId(), expense.getTitle(), expense.getAmount(), expense.getCategory(), expense.getDescription(), userName);
 	}
 	
+	//helper method to get current user
+	
+	private UserEntity getCurrentUser() {
+		
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		
+		UserEntity user = userRepository.findByEmail(email).orElseThrow(
+				() -> new UserNotFoundException("User not found"));
+		
+		return user;
+	}
+	
+	//helper method to validate ownership
+	
+	private void validateOwnership(TrackerEntity expense, UserEntity currentUser) {
+		
+		if(expense.getUser() == null || expense.getUser().getId() != currentUser.getId()) {
+			throw new AccessDeniedException("You are not allowed to access this expense!!");
+		}
+	}
+	
 	//Service Methods
 	public TrackerResponse addExpense(TrackerRequest request) {
 		
 		TrackerEntity expense = new TrackerEntity(request.getTitle(), request.getAmount(), request.getCategory(), request.getDescription());
+		//using helper method to assign user from securitycontextholder which stores the logged in user details
+		UserEntity user = getCurrentUser();
 		
-		UserEntity user = userRepository.findById(request.getUserId()).orElseThrow(() -> new UserNotFoundException("User not found"));
+		//UserEntity user = userRepository.findById(request.getUserId()).orElseThrow(() -> new UserNotFoundException("User not found"));
 		
 		expense.setUser(user);
 		
@@ -67,7 +91,7 @@ public class TrackerService {
 			    "Expense added successfully"
 			);
 		
-		return new TrackerResponse(expense.getId(), expense.getTitle(), expense.getAmount(), expense.getCategory(), expense.getDescription(), expense.getUser().getName());
+		return mapToResponse(expense);
 	}
 	
 	public List<TrackerResponse> getAllExpenses(int page, int size) {
@@ -86,22 +110,25 @@ public class TrackerService {
 	
 	public TrackerResponse getExpenseById(int id) {
 		
-		
 		TrackerEntity expense = repository.findById(id).orElseThrow(() -> {
 			logger.error("Expense not found with id: {}",id);
 			return new ExpenseNotFoundException("Expense not found");
 		});
 		
+		UserEntity currentUser = getCurrentUser();
+		
+		validateOwnership(expense, currentUser);
+
 		//since some expenses were created prior to the relationship to user, 
 		//the function expense.getUser() = null and when we use expense.getUser().getName it is essentially null.getName() which throws null pointer exception
 		//hence this tiny null exception escaping condition
-		String userName = null;
+//		String userName = null;
+//		
+//		if(expense.getUser() != null) {
+//			userName = expense.getUser().getName();
+//		}
 		
-		if(expense.getUser() != null) {
-			userName = expense.getUser().getName();
-		}
-		
-		return new TrackerResponse(expense.getId(), expense.getTitle(), expense.getAmount(), expense.getCategory(), expense.getDescription(), userName);
+		return mapToResponse(expense);
 	}
 
 	public TrackerResponse updateExpenseById(int id, TrackerRequest request) {
@@ -111,16 +138,20 @@ public class TrackerService {
 			return new ExpenseNotFoundException("Expense not found");
 		});
 		
-		UserEntity user = userRepository.findById(request.getUserId()).orElseThrow(() -> {
-			logger.error("User not found with id: {}",request.getUserId());
-		return new UserNotFoundException("User not found");
-		});
+//		UserEntity user = userRepository.findById(request.getUserId()).orElseThrow(() -> {
+//			logger.error("User not found with id: {}",request.getUserId());
+//		return new UserNotFoundException("User not found");
+//		});
+
+		UserEntity currentUser =  getCurrentUser();
+		
+		validateOwnership(expense, currentUser);
 		
 		expense.setTitle(request.getTitle());
 		expense.setAmount(request.getAmount());
 		expense.setCategory(request.getCategory());
 		expense.setDescription(request.getDescription());
-		expense.setUser(user);
+		expense.setUser(currentUser);
 		
 		logger.info("updating expense with id: {}",id);
 		
@@ -128,7 +159,7 @@ public class TrackerService {
 		
 		logger.info("Expense update successfully");
 		
-		return new TrackerResponse(expense.getId(), expense.getTitle(), expense.getAmount(), expense.getCategory(), expense.getDescription(), expense.getUser().getName());
+		return mapToResponse(expense);
 	}
 
 	public TrackerResponse deleteExpenseById(int id) {
@@ -138,13 +169,17 @@ public class TrackerService {
 			return new ExpenseNotFoundException("Expense not found");
 		});
 		
+		UserEntity currentUser =  getCurrentUser();
+		
+		validateOwnership(expense, currentUser);
+				
 		logger.info("Deleting expense with id: {}",id);
 		
 		repository.delete(expense);
 		
 		logger.info("Expense deleted successfully");
 		
-		return new TrackerResponse(id, expense.getTitle(), expense.getAmount(), expense.getCategory(), expense.getDescription());
+		return mapToResponse(expense);
 	}
 
 	public List<TrackerResponse> getExpensesByCategory(String category) {
