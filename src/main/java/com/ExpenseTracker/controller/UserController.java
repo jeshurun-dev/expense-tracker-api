@@ -6,21 +6,27 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ExpenseTracker.dto.ApiResponse;
+import com.ExpenseTracker.dto.PasswordUpdateRequest;
 import com.ExpenseTracker.dto.UserDetailsResponse;
 import com.ExpenseTracker.dto.UserRequest;
 import com.ExpenseTracker.dto.UserResponse;
 import com.ExpenseTracker.service.UserService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
+@Tag(
+		name ="Users",
+		description = "User manangement APIs")
 public class UserController {
 
 	private final UserService service;
@@ -29,6 +35,8 @@ public class UserController {
 		this.service = service;
 	}
 	
+	@Operation(
+			summary = "Register a new user")
 	@PostMapping("/users")
 	public ResponseEntity<ApiResponse<UserResponse>> addUser(@Valid @RequestBody UserRequest request){
 	
@@ -39,6 +47,8 @@ public class UserController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
 	}
 	
+	@Operation(
+			summary = "Get all users (Admin only)")
 	@GetMapping("users/all-users")
 	public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers(){
 		
@@ -48,8 +58,9 @@ public class UserController {
 		
 		return ResponseEntity.ok(apiResponse);
 	}
-	
-	@GetMapping("/users/{id}")
+	@Operation(
+			summary = "Get user details by User ID (Admin only)")
+	@GetMapping("/users/user-details/{id}")
 	public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable int id) {
 
 		UserResponse user = service.getUserById(id);
@@ -59,16 +70,20 @@ public class UserController {
 	    return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
 	}
 	
-	@PutMapping("/users/{id}")
-	public ResponseEntity<ApiResponse<UserResponse>> udpateUser(@PathVariable int id, @Valid @RequestBody UserRequest request){
+	@Operation(
+			summary = "Change/Update password")
+	@PatchMapping("/users/change-password")
+	public ResponseEntity<ApiResponse<String>> udpateUser(@Valid @RequestBody PasswordUpdateRequest request){
 		
-		UserResponse user = service.updateUserById(id, request);
+		String response =  service.updatePassword(request);
 		
-		ApiResponse<UserResponse> apiResponse = new ApiResponse<UserResponse>(true, "User updated successfuly", user);
+		ApiResponse<String> apiResponse = new ApiResponse<String>(true, "User updated successfuly", response);
 		
 		return ResponseEntity.ok(apiResponse);
 	}
 	
+	@Operation(
+			summary = "Get current user's expeneses")
 	@GetMapping("/users/my-expenses")
 	public ResponseEntity<ApiResponse<UserDetailsResponse>> getExpensesByUser() {
 
@@ -79,8 +94,9 @@ public class UserController {
 	    return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
 	}
 	
-	
-	@DeleteMapping("/users/{id}")
+	@Operation(
+			summary = "Delete an expense")
+	@DeleteMapping("/users/delete-user/{id}")
 	public ResponseEntity<ApiResponse<UserResponse>> deleteUserById(@PathVariable int id){
 		
 		UserResponse user = service.deleteUserById(id);

@@ -14,7 +14,13 @@ import com.ExpenseTracker.dto.ApiResponse;
 import com.ExpenseTracker.dto.LoginRequest;
 import com.ExpenseTracker.security.jwt.JwtService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
+@Tag(
+		name = "Authentication",
+		description = "Login and authentication APIs")
 @RequestMapping("/auth")
 public class AuthController {
 
@@ -27,23 +33,30 @@ public class AuthController {
 		this.jwtService = jwtService;
 	}
 	
+	@Operation(
+			summary = "Login user")
 	@PostMapping("/login")
 	public ResponseEntity<ApiResponse<String>> login(@RequestBody LoginRequest request){
 		
-		Authentication authentication = authenticationManager.authenticate(
+		
+		//System.out.println("LOGIN HIT");
+	    //System.out.println(request.getEmail());
+	
+			 Authentication authentication = authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(
 						request.getEmail(), 
 						request.getPassword()
 				)
 		);
-		
-		UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-		
-		String token = jwtService.generateToken(userDetails);
-		
-		ApiResponse<String> ApiResponse = new ApiResponse<String>(true, "Login Successfull", token);
-		
-		return ResponseEntity.ok(ApiResponse);
-		
+			
+			UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+			
+			String token = jwtService.generateToken(userDetails);
+			
+			ApiResponse<String> ApiResponse = new ApiResponse<String>(true, "Login Successfull", token);
+			
+			return ResponseEntity.ok(ApiResponse);
+
 	}
+
 }

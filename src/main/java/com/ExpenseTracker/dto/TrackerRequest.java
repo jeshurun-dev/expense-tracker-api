@@ -17,22 +17,12 @@ public class TrackerRequest {
 	@NotBlank(message = "Description is required")
 	private String description;
 	
-	@Min(1)
-	private int userId;
-
+	
 	public TrackerRequest(String title, double amount, String category, String description) {
 		this.title = title;
 		this.amount = amount;
 		this.category = category;
 		this.description = description;
-	}
-
-	public int getUserId() {
-		return userId;
-	}
-
-	public void setUserId(int userId) {
-		this.userId = userId;
 	}
 
 	public String getTitle() {

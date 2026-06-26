@@ -21,9 +21,13 @@ import com.ExpenseTracker.dto.TrackerRequest;
 import com.ExpenseTracker.dto.TrackerResponse;
 import com.ExpenseTracker.service.TrackerService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
+@Tag(
+		name ="Expenses",
+		description = "Expense Management APIs")
 public class TrackerController {
 
 	private final TrackerService service;

@@ -7,11 +7,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.ExpenseTracker.dto.PasswordUpdateRequest;
 import com.ExpenseTracker.dto.UserDetailsResponse;
 import com.ExpenseTracker.dto.UserRequest;
 import com.ExpenseTracker.dto.UserResponse;
 import com.ExpenseTracker.entity.UserEntity;
-import com.ExpenseTracker.exceptions.AccessDeniedException;
+import com.ExpenseTracker.exceptions.InvalidPasswordException;
 import com.ExpenseTracker.exceptions.UserNotFoundException;
 import com.ExpenseTracker.repository.UserRepository;
 
@@ -29,11 +30,21 @@ public class UserService {
 	
 	private static final Logger logger = org.slf4j.LoggerFactory.getLogger(UserService.class);
 	
-	public static UserResponse mapToResponse(UserEntity user) {
+	private static UserResponse mapToResponse(UserEntity user) {
 		
 		return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getRole());
 	}
 	
+	//helper method to get current user details
+	private UserEntity getCurrentUser() {
+		
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		
+		UserEntity user = repository.findByEmail(email).orElseThrow(
+				() -> new UserNotFoundException("User not found"));
+		return user;
+		
+	}
 	public UserResponse addUser(UserRequest request) {
 		
 		UserEntity user = new UserEntity(request.getName(), request.getEmail(), request.getPassword());
@@ -54,7 +65,8 @@ public class UserService {
 	
 	public List<UserResponse> getAllUsers() {
 		
-		return repository.findAll().stream().map(user -> mapToResponse(user)).toList();
+		return repository.findAll().stream().map(user -> mapToResponse(user))
+				.toList();
 	}
 	
 	public UserResponse getUserById(int id) {
@@ -69,30 +81,26 @@ public class UserService {
 	
 	public UserDetailsResponse getExpensesByUser() {
 		
-		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		
-		UserEntity user = repository.findByEmail(email).orElseThrow(() -> {
-			logger.error("User not found with email: {}",email);
-			return new UserNotFoundException("User not found");
-			});
+		UserEntity user = getCurrentUser();
 		
 		return new UserDetailsResponse(user.getId(), user.getName(), user.getEmail(), user.getExpenses());
 		
 	}
 
-	public UserResponse updateUserById(int id, UserRequest request) {
+	public String updatePassword(PasswordUpdateRequest password) {
 		
-		UserEntity user = repository.findById(id).orElseThrow(() -> {
-			logger.error("User not found with id: {}",id);
-			return new UserNotFoundException("User not found");
-			}); 
-		
-		user.setName(request.getName());
-		user.setEmail(request.getEmail());
+		UserEntity user = getCurrentUser();
+				
+		if(passwordEncoder.matches(password.getOldPassword(), user.getPassword())) {
+			user.setPassword(passwordEncoder.encode(password.getNewPassword()));
+		}
+		else {
+			throw new InvalidPasswordException("Please enter your old password correctky");
+		}
 		
 		repository.save(user);
 		
-		return mapToResponse(user);
+		return "Password updated successfully";
 		
 	}
 

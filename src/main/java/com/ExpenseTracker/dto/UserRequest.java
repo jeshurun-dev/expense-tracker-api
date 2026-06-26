@@ -16,7 +16,7 @@ public class UserRequest {
 	@Size(min = 6, message ="password should be atleast 6 characters long")
 	private String password;
 	
-//	private String role;
+	//private String role;
 
 	public UserRequest(String name, String email) {
 		this.name = name;
@@ -30,6 +30,7 @@ public class UserRequest {
 //		this.role = role;
 	}
 
+	
 	public UserRequest() {
 	
 	}

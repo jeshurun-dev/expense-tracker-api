@@ -38,10 +38,11 @@ public class JwtService {
 	private Claims extractAllClaims(String token) {
 		
 		return Jwts.parser() //configure how to read the JWT token
-			       .verifyWith(getSignInKey()) //verifying if the signature is valid
-			       .build() //after verifying, create the parser object
-			       .parseSignedClaims(token) //extract the verified claims(header, payload, signature)
-			       .getPayload();//get data from the payload of JWT
+				       .verifyWith(getSignInKey()) //verifying if the signature is valid
+				       .build() //after verifying, create the parser object
+				       .parseSignedClaims(token) //extract the verified claims(header, payload, signature)
+				       .getPayload();//get data from the payload of JWT
+		
 	}
 	
 	//extract username from the JWT via claims

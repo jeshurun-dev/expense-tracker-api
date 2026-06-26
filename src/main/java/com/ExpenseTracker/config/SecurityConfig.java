@@ -10,16 +10,22 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.ExpenseTracker.exceptions.CustomAccessDeniedHandler;
 import com.ExpenseTracker.security.jwt.JwtAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
 
 	private JwtAuthenticationFilter jwtAuthenticationFilter;
+	private CustomAccessDeniedHandler customAccessDeniedHandler;
 	
-	public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+	public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,CustomAccessDeniedHandler customAccessDeniedHandler) {
 		this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+		this.customAccessDeniedHandler = customAccessDeniedHandler;
 	}
 
 	@Bean
@@ -28,12 +34,31 @@ public class SecurityConfig {
 		return new BCryptPasswordEncoder();
 		
 	}
+	//for frontend end connection
+	@Bean
+	public CorsConfigurationSource corsConfigurationSource() {
+	    CorsConfiguration configuration = new CorsConfiguration();
+
+	    configuration.addAllowedOrigin("http://localhost:5173");
+	    configuration.addAllowedMethod("*");
+	    configuration.addAllowedHeader("*");
+	    configuration.setAllowCredentials(true);
+
+	    UrlBasedCorsConfigurationSource source =
+	            new UrlBasedCorsConfigurationSource();
+
+	    source.registerCorsConfiguration("/**", configuration);
+
+	    return source;
+	} 
 	
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
 		
-		return http.csrf(csrf -> csrf.disable())
-		    .authorizeHttpRequests(auth -> auth 
+		return http
+		        .cors(cors -> {}) //added to connect the front end
+		        .csrf(csrf -> csrf.disable())
+		        .authorizeHttpRequests(auth -> auth 
 		    		
 		    		.requestMatchers(
 		    				HttpMethod.POST, "/users")
@@ -41,21 +66,34 @@ public class SecurityConfig {
 		    		.requestMatchers(
 		    				HttpMethod.POST,"/auth/login")
 		    		.permitAll()
+		    		.requestMatchers(
+		    		        "/swagger-ui/**",
+		    		        "/v3/api-docs/**"
+		    		)
+		    		.permitAll()
 		    		.requestMatchers(HttpMethod.GET,"/users/my-expenses")
 		    		.hasAnyRole("USER","ADMIN")
-		    		.requestMatchers(HttpMethod.GET,"/users/all-users")
+		    		.requestMatchers(HttpMethod.GET,"/users/**")
 		    		.hasRole("ADMIN")
-		    		.requestMatchers(HttpMethod.GET,"/users/*")
+		    		.requestMatchers(HttpMethod.PATCH,"/users/*")
+		    		.hasAnyRole("USER","ADMIN")
+		    		.requestMatchers(HttpMethod.DELETE,"/users/**")
 		    		.hasRole("ADMIN")
-		    		.requestMatchers(HttpMethod.PUT,"/users/*")
-		    		.hasRole("ADMIN")
-		    		.requestMatchers(HttpMethod.DELETE,"/users/*")
-		    		.hasRole("ADMIN")
-		    		
+		    		.requestMatchers(HttpMethod.POST,"/expenses")
+		    		.hasAnyRole("USER","ADMIN")
+		    		.requestMatchers(HttpMethod.GET,"/expenses/paginated")
+		    		.hasAnyRole("ADMIN")
+		    		.requestMatchers(HttpMethod.PUT,"/expenses/*")
+		    		.hasAnyRole("USER","ADMIN")
+		    		.requestMatchers(HttpMethod.DELETE,"/expenses/*")
+		    		.hasAnyRole("USER","ADMIN")
+		    		.requestMatchers(HttpMethod.GET,"/expenses/expense-user")
+		    		.hasAnyRole("ADMIN")
 		    		.anyRequest()
 		    		.authenticated()
 		    		)
 		    .addFilterBefore(jwtAuthenticationFilter,  UsernamePasswordAuthenticationFilter.class)
+		    .exceptionHandling(exception -> exception.accessDeniedHandler(customAccessDeniedHandler))
 		    .build();
 		
 	}

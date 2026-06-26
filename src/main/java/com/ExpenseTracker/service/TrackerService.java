@@ -52,7 +52,6 @@ public class TrackerService {
 	}
 	
 	//helper method to get current user
-	
 	private UserEntity getCurrentUser() {
 		
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -64,7 +63,6 @@ public class TrackerService {
 	}
 	
 	//helper method to validate ownership
-	
 	private void validateOwnership(TrackerEntity expense, UserEntity currentUser) {
 		
 		if(expense.getUser() == null || expense.getUser().getId() != currentUser.getId()) {

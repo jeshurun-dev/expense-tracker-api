@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -49,6 +50,22 @@ public class GlobalExceptionHandler {
 		ApiResponse<MessageResponse> apiResponse = new ApiResponse<MessageResponse>(false, ex.getMessage(), null);
 		
 		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiResponse);
+	}
+	
+	@ExceptionHandler(InvalidPasswordException.class)
+	public ResponseEntity<ApiResponse<MessageResponse>> handleInvalidPasswordException(InvalidPasswordException ex){
+		
+		ApiResponse<MessageResponse> apiResponse = new ApiResponse<MessageResponse>(false, ex.getMessage(), null);
+		
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(apiResponse);
+	}
+	
+	@ExceptionHandler(BadCredentialsException.class)
+	public ResponseEntity<ApiResponse<MessageResponse>> handleBadCredentialsException(BadCredentialsException ex){
+		
+		ApiResponse<MessageResponse> apiResponse = new ApiResponse<MessageResponse>(false, "Invalid Email or password", null);
+		
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(apiResponse);
 	}
 }
 
